@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:id="@+id/storage_device_item"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_outlined_white"
+    android:orientation="horizontal"
+    android:layout_margin="3dp"
+    android:elevation="5dp"
+    android:clipToPadding="true"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:src="@drawable/mobile_ic"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:orientation="vertical">
+
+
+    <TextView
+        android:id="@+id/device_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Internal Storage"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/storage_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="32GB used of 64GB"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray" />
+        <View
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray500"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

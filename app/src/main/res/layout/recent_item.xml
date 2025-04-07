@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/recent_file_item"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="3dp"
+    android:elevation="10dp"
+
+    android:clipToPadding="true"
+    android:padding="8dp">
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="60dp"
+        app:cardCornerRadius="10dp"
+        android:layout_height="60dp">
+        <ImageView
+            android:id="@+id/file_icon"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:scaleType="centerCrop"
+            android:layout_gravity="center"
+            android:src="@drawable/photoes" />
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
+        android:id="@+id/modifiedTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1 hour ago"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:layout_gravity="start"
+        android:layout_marginTop="4dp" />
+    <TextView
+        android:id="@+id/file_title"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:text="Images"
+        android:maxLines="2"
+        android:maxLength="20"
+        android:layout_gravity="start"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+</LinearLayout>
