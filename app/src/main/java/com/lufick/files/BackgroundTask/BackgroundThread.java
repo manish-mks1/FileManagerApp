@@ -3,10 +3,9 @@ package com.lufick.files.BackgroundTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 
-import com.google.android.material.snackbar.Snackbar;
-import com.lufick.files.Adapters.Callbacks.LoadSearchList;
+import com.lufick.files.Callbacks.LoadRecentList;
+import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
 import com.lufick.files.Controls.FileManager;
@@ -14,9 +13,7 @@ import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 
 import java.io.File;
-import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,18 +24,18 @@ public class BackgroundThread {
     private Handler handler ;
 
     public BackgroundThread() {
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = Executors.newFixedThreadPool(2);
         handler = new Handler(Looper.getMainLooper());
     }
 
-    public void loadRecentFiles(ItemAdapter<RecentFileItem> itemAdapter) {
+    public void loadRecentFiles(LoadRecentList listener) {
         FileManager fm = new FileManager();
         executorService.execute(() -> {
             List<RecentFileItem> recentFiles = fm.getRecentFiles(Environment.getExternalStorageDirectory());
 
             handler.post(() -> {
                 recentFiles.sort((f1, f2) -> Long.compare(f2.getFile().lastModified(), f1.getFile().lastModified()));
-                itemAdapter.set(recentFiles);
+                listener.onLoadRecentList(recentFiles);
             });
         });
     }

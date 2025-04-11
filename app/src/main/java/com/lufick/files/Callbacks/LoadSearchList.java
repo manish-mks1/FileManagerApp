@@ -1,4 +1,4 @@
-package com.lufick.files.Adapters.Callbacks;
+package com.lufick.files.Callbacks;
 
 import com.lufick.files.Adapters.FileItem;
 

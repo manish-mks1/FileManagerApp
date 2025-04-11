@@ -2,7 +2,6 @@ package com.lufick.files;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -15,20 +14,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.Settings;
 import android.text.InputType;
-import android.text.Selection;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.MimeTypeMap;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -40,12 +31,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.lufick.files.Adapters.BreadcrumbItem;
-import com.lufick.files.Adapters.Callbacks.LoadFilteredList;
-import com.lufick.files.Adapters.Callbacks.LoadSearchList;
+import com.lufick.files.Callbacks.LoadFilteredList;
+import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.AsyncTask.LoadFilesFolders;
 import com.lufick.files.AsyncTask.LoadFilesTaskByCategory;
@@ -54,29 +43,18 @@ import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;
 import com.lufick.files.Enumeration.SortingType;
 import com.lufick.files.Fragments.FolderPickerDialog;
-import com.lufick.files.Sorting.SortByDate;
-import com.lufick.files.Sorting.SortByName;
-import com.lufick.files.Sorting.SortBySize;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.mikepenz.fastadapter.listeners.ClickEventHook;
 import com.mikepenz.fastadapter.select.SelectExtension;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URLConnection;
-import java.nio.channels.SelectableChannel;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class FileManagerActivity extends AppCompatActivity {
 
+    public static final String file_category_key = "file_category_key";
     File currentDirectory;
     File internalStorage;
     SelectExtension<FileItem> selectExtension;

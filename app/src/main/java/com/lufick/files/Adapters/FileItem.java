@@ -30,7 +30,7 @@ public class FileItem extends AbstractItem< FileItem.ViewHolder>{
 
     private final File file;
 
-    private String searchQuery = "";
+    private static String searchQuery = "";
 
     public FileItem(File file) {
         this.file = file;
@@ -39,6 +39,7 @@ public class FileItem extends AbstractItem< FileItem.ViewHolder>{
     public File getFile() {
         return file;
     }
+
 
 
     public void setSearchQuery(String query) {
@@ -130,7 +131,7 @@ public class FileItem extends AbstractItem< FileItem.ViewHolder>{
             } else {
                 file_count_size.setText(fm.formatFileSize(item.getFile().length()));
 
-                String mimeType = fm.getMimeType(item.getFile());
+                String mimeType = FileManager.getMimeType(item.getFile());
                 if (mimeType == null) {
                     mimeType = URLConnection.guessContentTypeFromName(item.getFile().getName());
                 }

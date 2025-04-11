@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.lufick.files.Adapters.Callbacks.LoadFilteredList;
+import com.lufick.files.Callbacks.LoadFilteredList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;

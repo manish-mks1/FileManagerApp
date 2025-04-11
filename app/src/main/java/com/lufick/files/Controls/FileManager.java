@@ -55,7 +55,7 @@ public class FileManager {
         fastAdapter.notifyDataSetChanged();
     }
 
-    public String formatFileSize(long size) {
+    public static String formatFileSize(long size) {
         if (size < 1024) return size + " B";
         int exp = (int) (Math.log(size) / Math.log(1024));
         String pre = "KMGTPE".charAt(exp - 1) + "B";
@@ -64,11 +64,11 @@ public class FileManager {
 
 
 
+
     public void openFile(Context context,File file) {
         try {
             String mimeType = getMimeType(file);
             Intent intent = new Intent(Intent.ACTION_VIEW);
-
             Uri fileUri = FileProvider.getUriForFile(
                     context,
                     context.getPackageName()+".provider",
@@ -86,7 +86,7 @@ public class FileManager {
         }
     }
 
-    public String getMimeType(File file) {
+    public static String getMimeType(File file) {
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(file.getAbsolutePath());
         if (extension != null) {
