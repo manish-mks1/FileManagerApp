@@ -54,11 +54,12 @@ import java.util.List;
 
 public class FileManagerActivity extends AppCompatActivity {
 
-    public static final String file_category_key = "file_category_key";
+    public static final String SORTING_PREF = "Files_sorting_pref";
+    public static final String SORTING_TYPE = "sortingType";
+    public static final String SORTING_ORDER = "sortingOrder";
     File currentDirectory;
     File internalStorage;
     SelectExtension<FileItem> selectExtension;
-    boolean isFirstSelectionMade;
     private RecyclerView recyclerView, breadcrumbRecyclerView;
     File storage ;
     String fileCategory;
@@ -67,7 +68,7 @@ public class FileManagerActivity extends AppCompatActivity {
     private FastAdapter<BreadcrumbItem> breadcrumbFastAdapter;
     private ItemAdapter<BreadcrumbItem> breadcrumbItemAdapter;
 
-    List<FileItem> filteredList;
+    List<FileItem> itemList;
     private ItemAdapter<FileItem> itemAdapter;
     private FastAdapter<FileItem> fastAdapter;
 
@@ -198,7 +199,6 @@ public class FileManagerActivity extends AppCompatActivity {
                 if(!newName.isEmpty()) {
                     fm.renameSelectedFolderFiles(itemAdapter,fastAdapter,selectExtension,newName);
                 }
-                isFirstSelectionMade = false;
 
                 fastAdapter.notifyDataSetChanged();
 
@@ -249,7 +249,7 @@ public class FileManagerActivity extends AppCompatActivity {
             public void onClick(View view) {
                 sortingOrder = !sortingOrder;
                 editor.putBoolean("sortingOrder",sortingOrder);
-                sm.sortBy(itemAdapter,fastAdapter,filteredList,sortingType,sortingOrder);
+                sm.sortBy(itemAdapter,fastAdapter, itemList,sortingType,sortingOrder);
                 if(sortingOrder){
                     sortingAccDesc.setImageResource(R.drawable.arrow_up_short_ic);
                 }else{
@@ -276,7 +276,7 @@ public class FileManagerActivity extends AppCompatActivity {
                         }else{
                             return false;
                         }
-                        sm.sortBy(itemAdapter,fastAdapter,filteredList,sortingType,sortingOrder);
+                        sm.sortBy(itemAdapter,fastAdapter, itemList,sortingType,sortingOrder);
                         editor.putString("sortingType",sortingType);
                         sortingTypeName.setText(sortingType);
                         editor.apply();
@@ -291,8 +291,8 @@ public class FileManagerActivity extends AppCompatActivity {
     private void fastadapterListener() {
 
         fastAdapter.setOnLongClickListener((v, adapter, item, position) -> {
-            if (!isFirstSelectionMade && item != null) {
-                applyFirstSelection(position);
+            if (item != null) {
+                applySelection(position);
                 return true;
             }
             return false;
@@ -300,9 +300,8 @@ public class FileManagerActivity extends AppCompatActivity {
 
 
         fastAdapter.setOnClickListener((v, adapter, item, position) -> {
-            if (isFirstSelectionMade && item != null) {
-                applyMultiSelection(position);
-                return true;
+            if (!selectExtension.getSelections().isEmpty()) {
+                applySelection(position);
             }else{
                 File file = item.getFile();
                 Log.d("File:",file.getName());
@@ -314,7 +313,7 @@ public class FileManagerActivity extends AppCompatActivity {
                 }
 
             }
-            return false;
+            return true;
         });
 
         fastAdapter.addEventHook(new ClickEventHook<FileItem>() {
@@ -340,7 +339,7 @@ public class FileManagerActivity extends AppCompatActivity {
                         int itemId = it.getItemId();
 
                         if (itemId == R.id.selectBtn) {
-                            applyFirstSelection(i);
+                            applySelection(i);
                             return true;
                         } else if (itemId == R.id.copyBtn) {
                             new FolderPickerDialog(new FolderPickerDialog.OnFolderSelectedListener() {
@@ -445,14 +444,14 @@ public class FileManagerActivity extends AppCompatActivity {
 
         allFileList = new ArrayList<>();
 
-        filteredList = new ArrayList<>();
+        itemList = new ArrayList<>();
 
-        sharedPreferences = getSharedPreferences("Files_sorting_pref",MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(SORTING_PREF,MODE_PRIVATE);
         editor = sharedPreferences.edit();
 
 
-        sortingOrder = sharedPreferences.getBoolean("sortingOrder",true);
-        sortingType = sharedPreferences.getString("sortingType","Name");
+        sortingOrder = sharedPreferences.getBoolean(SORTING_ORDER,true);
+        sortingType = sharedPreferences.getString(SORTING_TYPE,"Name");
 
         selectionBar = findViewById(R.id.selectionBar);
         selectionBottomBar = findViewById(R.id.selectionBottomBar);
@@ -508,34 +507,21 @@ public class FileManagerActivity extends AppCompatActivity {
 
         sortingTypeName.setText(sortingType);
     }
-    private void applyFirstSelection(int position){
-        renameBtn.setVisibility(View.VISIBLE);
-        selectExtension.toggleSelection(position);
-        fastAdapter.notifyItemChanged(position);
-        count = 1;
-        selectedCount.setText(String.valueOf(count+" Selected"));
-        isFirstSelectionMade = true;
-        selectionBar.setVisibility(View.VISIBLE);
-        selectionBottomBar.setVisibility(View.VISIBLE);
-    }
-    private void applyMultiSelection(int position) {
-        renameBtn.setVisibility(View.GONE);
-        selectExtension.toggleSelection(position);
-        count = selectExtension.getSelections().size();
-        selectedCount.setText(String.valueOf(count+" Selected"));
-        fastAdapter.notifyItemChanged(position);
-
-        if (selectExtension.getSelections().isEmpty()) {
-            isFirstSelectionMade = false;
-            count = 0;
+    private void applySelection(int position){
+        int count = selectExtension.getSelections().size();
+        if(count == 0){
             selectionBar.setVisibility(View.GONE);
             selectionBottomBar.setVisibility(View.GONE);
-        }
-        if(count<2){
+        }else if(count == 1){
             renameBtn.setVisibility(View.VISIBLE);
         }else{
             renameBtn.setVisibility(View.GONE);
         }
+//        selectExtension.toggleSelection(position);
+        fastAdapter.notifyItemChanged(position);
+        selectedCount.setText(String.valueOf(count+" Selected"));
+        selectionBar.setVisibility(View.VISIBLE);
+        selectionBottomBar.setVisibility(View.VISIBLE);
     }
 
 
@@ -543,8 +529,8 @@ public class FileManagerActivity extends AppCompatActivity {
         new LoadFilesTaskByCategory(category, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFilteredList() {
             @Override
             public void onLoadFilteredList(List<FileItem> list) {
-                filteredList = new ArrayList<>(list);
-                allFileList = new ArrayList<>(filteredList);
+                itemList = new ArrayList<>(list);
+                allFileList = new ArrayList<>(itemList);
             }
         }).execute();
     }
@@ -553,7 +539,7 @@ public class FileManagerActivity extends AppCompatActivity {
         new LoadFilesFolders(directory, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFilteredList() {
             @Override
             public void onLoadFilteredList(List<FileItem> list) {
-                filteredList = new ArrayList<>(list);
+                itemList = new ArrayList<>(list);
             }
         }).execute();
         currentDirectory = directory;
@@ -613,7 +599,7 @@ public class FileManagerActivity extends AppCompatActivity {
             });
         }
         else {
-            fm.refreshList(filteredList, itemAdapter, fastAdapter);
+            fm.refreshList(itemList, itemAdapter, fastAdapter);
         }
         return true;
     }
@@ -623,7 +609,6 @@ public class FileManagerActivity extends AppCompatActivity {
     public void onBackPressed() {
         if(!selectExtension.getSelections().isEmpty()){
             selectExtension.deselect();
-            isFirstSelectionMade = false;
             selectionBar.setVisibility(View.GONE);
             selectionBottomBar.setVisibility(View.GONE);
         }else if(currentDirectory != null){

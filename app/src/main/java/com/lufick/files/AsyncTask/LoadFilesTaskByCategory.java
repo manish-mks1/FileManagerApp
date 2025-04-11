@@ -14,6 +14,7 @@ import com.lufick.files.Callbacks.LoadFilteredList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;
+import com.lufick.files.FileManagerActivity;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 
@@ -46,11 +47,11 @@ public class LoadFilesTaskByCategory extends AsyncTask<Void, Void, List<FileItem
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
         progressBar.setVisibility(View.VISIBLE);
-        sharedPreferences = context.getSharedPreferences("Files_sorting_pref",MODE_PRIVATE);
-        sortingOrder = sharedPreferences.getBoolean("sortingOrder",false);
-        sortingType = sharedPreferences.getString("sortingType","Name");
+        sharedPreferences = context.getSharedPreferences(FileManagerActivity.SORTING_PREF,MODE_PRIVATE);
+        sortingOrder = sharedPreferences.getBoolean(FileManagerActivity.SORTING_ORDER,true);
+        sortingType = sharedPreferences.getString(FileManagerActivity.SORTING_TYPE,"Name");
+
     }
 
     @Override
