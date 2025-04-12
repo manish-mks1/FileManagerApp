@@ -1,5 +1,8 @@
 package com.lufick.files;
 
+import static com.lufick.files.Enumeration.ActionType.ADD_FOLDER;
+import static com.lufick.files.Enumeration.ActionType.DELETE;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -33,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lufick.files.Adapters.BreadcrumbItem;
+import com.lufick.files.Callbacks.LoadAlertDialogBox;
 import com.lufick.files.Callbacks.LoadFilteredList;
 import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
@@ -41,6 +45,7 @@ import com.lufick.files.BackgroundTask.LoadFilesTaskByCategory;
 import com.lufick.files.BackgroundTask.BackgroundThread;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;
+import com.lufick.files.Enumeration.ActionType;
 import com.lufick.files.Enumeration.SortingType;
 import com.lufick.files.Fragments.FolderPickerDialog;
 import com.mikepenz.fastadapter.FastAdapter;
@@ -106,28 +111,13 @@ public class FileManagerActivity extends AppCompatActivity {
     }
     private void clickListener() {
         addFolderBtn.setOnClickListener(view -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(FileManagerActivity.this);
-            final EditText input = new EditText(FileManagerActivity.this);
-            input.setInputType(InputType.TYPE_CLASS_TEXT);
-            builder.setView(input);
-            builder.setTitle("Create Folder");
-            input.setHint("Folder Name");
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            layoutParams.setMargins(50, 30, 50, 10); // left, top, right, bottom margin
-            input.setLayoutParams(layoutParams);
-            builder.setPositiveButton("Create", (dialog, which) -> {
-                String newName = input.getText().toString();
-                if(!newName.isEmpty()) {
+            fm.showAlertDialog(FileManagerActivity.this, "Create Folder", null, "Create", "Cancel", ADD_FOLDER, FileManager.NEW_FOLDER, new LoadAlertDialogBox() {
+                @Override
+                public void onLoadAlertDialog(String newName) {
                     fm.addFolder(view,currentDirectory,newName);
                     loadFiles(currentDirectory);
                 }
             });
-            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-            AlertDialog dialog = builder.create();
-            dialog.show();
         });
 
         homeBtn.setOnClickListener(new View.OnClickListener() {
@@ -136,8 +126,6 @@ public class FileManagerActivity extends AppCompatActivity {
                 loadFiles(internalStorage);
             }
         });
-
-
         breadcrumbFastAdapter.addEventHook(new ClickEventHook<BreadcrumbItem>() {
             @Nullable
             @Override
@@ -153,67 +141,31 @@ public class FileManagerActivity extends AppCompatActivity {
                 loadFiles(item.getDirectory());
             }
         });
-
-
         deleteBtn.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(FileManagerActivity.this);
-            builder.setTitle("Delete File(s)/Folder(s)");
-            builder.setMessage("Are you sure you want to delete this item?");
+            fm.showAlertDialog(FileManagerActivity.this, "Delete File(s)/Folder(s)", "Are you sure you want to delete this item?", "OK", "Cancel", ADD_FOLDER, null, new LoadAlertDialogBox() {
+                @Override
+                public void onLoadAlertDialog(String newName) {
+                    fm.deleteSelectedFiles(itemAdapter,selectExtension);
+                    fastAdapter.notifyDataSetChanged();
+                    selectionBarVisibility(false);
 
-            builder.setPositiveButton("OK", (dialog, which) -> {
-
-                fm.deleteSelectedFiles(itemAdapter,selectExtension);
-
-                fastAdapter.notifyDataSetChanged();
-
-                selectionBar.setVisibility(View.GONE);
-                selectionBottomBar.setVisibility(View.GONE);
-            });
-
-            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        });
-
-
-
-
-        renameBtn.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(FileManagerActivity.this);
-
-            final EditText input = new EditText(this);
-            input.setInputType(InputType.TYPE_CLASS_TEXT);
-            builder.setView(input);
-            builder.setTitle("Rename File/Folder");
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            layoutParams.setMargins(50, 30, 50, 10); // left, top, right, bottom margin
-            input.setLayoutParams(layoutParams);
-
-            builder.setPositiveButton("Rename", (dialog, which) -> {
-
-                String newName = input.getText().toString();
-                if(!newName.isEmpty()) {
-                    fm.renameSelectedFolderFiles(itemAdapter,fastAdapter,selectExtension,newName);
                 }
-
-                fastAdapter.notifyDataSetChanged();
-
-                selectionBar.setVisibility(View.GONE);
-                selectionBottomBar.setVisibility(View.GONE);
             });
-
-            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
         });
+        renameBtn.setOnClickListener(v -> {
+            if(!selectExtension.getSelections().isEmpty()){
+                FileItem item = itemAdapter.getAdapterItem(selectExtension.getSelections().iterator().next());
+                fm.showAlertDialog(FileManagerActivity.this, "Rename File/Folder", null, "Rename", "Cancel", ADD_FOLDER, FileManager.NEW_FOLDER, new LoadAlertDialogBox() {
+                    @Override
+                    public void onLoadAlertDialog(String newName) {
+                        fm.renameFolderOrFile(item.getFile(),newName);
+                        fastAdapter.notifyDataSetChanged();
+                        selectionBarVisibility(false);
+                    }
+                });
+            }
 
-
-
+        });
 
         copyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,8 +175,7 @@ public class FileManagerActivity extends AppCompatActivity {
                         fm.copySelectedFiles(itemAdapter,selectExtension,selectedFolderPath);
                     }).show(getSupportFragmentManager(), "FolderPickerDialog");
 
-                    selectionBar.setVisibility(View.GONE);
-                    selectionBottomBar.setVisibility(View.GONE);
+                    selectionBarVisibility(false);
                 }
             }
         });
@@ -236,13 +187,10 @@ public class FileManagerActivity extends AppCompatActivity {
                         fm.moveSelectedFiles(itemAdapter,selectExtension,selectedFolderPath);
                     }).show(getSupportFragmentManager(), "FolderPickerDialog");
 
-                    selectionBar.setVisibility(View.GONE);
-                    selectionBottomBar.setVisibility(View.GONE);
+                    selectionBarVisibility(false);
                 }
             }
         });
-
-
 
         sortingAccDesc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -286,6 +234,17 @@ public class FileManagerActivity extends AppCompatActivity {
                 menu.show();
             }
         });
+    }
+
+    private void selectionBarVisibility(boolean b) {
+        if(b){
+            selectionBar.setVisibility(View.VISIBLE);
+            selectionBottomBar.setVisibility(View.VISIBLE);
+        }else{
+            selectExtension.deselect();
+            selectionBar.setVisibility(View.GONE);
+            selectionBottomBar.setVisibility(View.GONE);
+        }
     }
 
     private void fastadapterListener() {
@@ -360,50 +319,25 @@ public class FileManagerActivity extends AppCompatActivity {
 
                             return true;
                         } else if (itemId == R.id.renameBtn) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(FileManagerActivity.this);
-
-                            final EditText input = new EditText(FileManagerActivity.this);
-                            input.setInputType(InputType.TYPE_CLASS_TEXT);
-                            builder.setView(input);
-                            builder.setTitle("Rename File/Folder");
-                            input.setText(item.getFile().getName());
-                            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT
-                            );
-                            layoutParams.setMargins(50, 30, 50, 10); // left, top, right, bottom margin
-                            input.setLayoutParams(layoutParams);
-
-                            builder.setPositiveButton("Rename", (dialog, which) -> {
-
-                                String newName = input.getText().toString();
-                                if(!newName.isEmpty()) {
+                            fm.showAlertDialog(FileManagerActivity.this, "Rename File/Folder", null, "Rename", "Cancel", ADD_FOLDER, FileManager.NEW_FOLDER, new LoadAlertDialogBox() {
+                                @Override
+                                public void onLoadAlertDialog(String newName) {
                                     fm.renameFolderOrFile(item.getFile(),newName);
+                                    fastAdapter.notifyDataSetChanged();
+                                    selectionBarVisibility(false);
                                 }
-                                fastAdapter.notifyItemChanged(i);
-
                             });
-
-                            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-                            AlertDialog dialog = builder.create();
-                            dialog.show();
                             return true;
                         } else if (itemId == R.id.deleteBtn) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(FileManagerActivity.this);
-                            builder.setTitle("Delete File(s)/Folder(s)");
-                            builder.setMessage("Are you sure you want to delete this item?");
+                            fm.showAlertDialog(FileManagerActivity.this, "Delete File(s)/Folder(s)", "Are you sure you want to delete "+item.getFile().getName(), "OK", "Cancel", ActionType.DELETE, item.getFile().getName(), new LoadAlertDialogBox() {
+                                @Override
+                                public void onLoadAlertDialog(String newName) {
+                                    fm.deleteFileOrFolder(item.getFile());
+                                    itemAdapter.remove(i);
+                                    fastAdapter.notifyAdapterItemRemoved(i);
 
-                            builder.setPositiveButton("OK", (dialog, which) -> {
-                                fm.deleteFileOrFolder(item.getFile());
-                                itemAdapter.remove(i);
-                                fastAdapter.notifyAdapterItemRemoved(i);
+                                }
                             });
-                            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-                            AlertDialog dialog = builder.create();
-                            dialog.show();
-
                             return true;
                         }
                         return false;
@@ -499,27 +433,23 @@ public class FileManagerActivity extends AppCompatActivity {
             bt.loadAllFiles(allFileList,currentDirectory);
         }
 
-
-        selectionBar.setVisibility(View.GONE);
-        selectionBottomBar.setVisibility(View.GONE);
-
         sortingTypeName.setText(sortingType);
     }
     private void applySelection(int position){
         int count = selectExtension.getSelections().size();
         if(count == 0){
-            selectionBar.setVisibility(View.GONE);
-            selectionBottomBar.setVisibility(View.GONE);
+            selectionBarVisibility(false);
         }else if(count == 1){
             renameBtn.setVisibility(View.VISIBLE);
         }else{
             renameBtn.setVisibility(View.GONE);
         }
+        selectionBarVisibility(true);
+
 //        selectExtension.toggleSelection(position);
         fastAdapter.notifyItemChanged(position);
         selectedCount.setText(String.valueOf(count+" Selected"));
-        selectionBar.setVisibility(View.VISIBLE);
-        selectionBottomBar.setVisibility(View.VISIBLE);
+
     }
 
 
@@ -606,9 +536,8 @@ public class FileManagerActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!selectExtension.getSelections().isEmpty()){
-            selectExtension.deselect();
-            selectionBar.setVisibility(View.GONE);
-            selectionBottomBar.setVisibility(View.GONE);
+
+            selectionBarVisibility(false);
         }else if(currentDirectory != null){
             if(currentDirectory.getAbsolutePath().equals(internalStorage.getAbsolutePath())){
                 super.onBackPressed();

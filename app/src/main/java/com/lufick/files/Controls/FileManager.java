@@ -9,19 +9,24 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
+import com.lufick.files.Callbacks.LoadAlertDialogBox;
+import com.lufick.files.Enumeration.ActionType;
 import com.lufick.files.R;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
@@ -33,11 +38,12 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class FileManager {
+
+    public static final String NEW_FOLDER = "New Folder";
     public static File getExternalSDCardPath(Context context) {
         File[] externalDirs = context.getExternalFilesDirs(null);
 
@@ -159,24 +165,6 @@ public class FileManager {
         return appList;
     }
 
-    public void renameSelectedFolderFiles(ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, SelectExtension<FileItem> selectExtension, String newName) {
-        Set<Integer> selectedPosition = selectExtension.getSelections();
-        for(Integer i : selectedPosition){
-            File file = itemAdapter.getAdapterItem(i).getFile();
-            if(file.isDirectory()){
-                if (file.renameTo(new File(file.getParent(), newName))) {
-                    Log.e("rename", "renameSelectedFolderFiles: ");
-                }
-            }else {
-                String extension = MimeTypeMap.getFileExtensionFromUrl(file.getAbsolutePath());
-                if (file.renameTo(new File(file.getParent(), newName + "." + extension))) {
-                    Log.e("rename", "renameSelectedFolderFiles: ");
-                }
-            }
-            fastAdapter.notifyItemChanged(i);
-        }
-        selectExtension.deselect();
-    }
     public void renameFolderOrFile(File file, String newName) {
         if(file.isDirectory()){
             if (file.renameTo(new File(file.getParent(), newName))) {
@@ -323,5 +311,54 @@ public class FileManager {
         }else{
                 Snackbar.make(view,"Folder Already Exists.", Snackbar.LENGTH_SHORT).show();
         }
+    }
+
+
+    public void showAlertDialog(Context context, String title, String message, String positive, String negative, ActionType actionType, String file_name, LoadAlertDialogBox listener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setCancelable(false);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton(positive, (dialog, which) -> {
+            switch(actionType) {
+                case DELETE:
+                    listener.onLoadAlertDialog("");
+                    break;
+                case RENAME :
+                    String newName = getTextInputFromDialog(context,file_name,builder);
+                    if (!newName.isEmpty()) {
+                        listener.onLoadAlertDialog(newName);
+                    }
+                    break;
+                case ADD_FOLDER:
+                    String newFolderName = getTextInputFromDialog(context,NEW_FOLDER,builder);
+                    if (!newFolderName.isEmpty()) {
+                        listener.onLoadAlertDialog(newFolderName);
+                    }
+                    break;
+            }
+
+        });
+
+        builder.setNegativeButton(negative, (dialog, which) -> dialog.dismiss());
+
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public String getTextInputFromDialog(Context context, String file_name,AlertDialog.Builder builder ){
+        final EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint(file_name);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        layoutParams.setMargins(50, 30, 50, 10);
+        input.setLayoutParams(layoutParams);
+        builder.setView(input);
+
+        return input.getText().toString();
     }
 }
