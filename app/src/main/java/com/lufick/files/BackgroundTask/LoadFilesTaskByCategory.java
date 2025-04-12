@@ -99,11 +99,8 @@ public class LoadFilesTaskByCategory {
             case "Audio":
                 list = fm.getFilesByType(context, "audio/");
                 break;
-            case "Downloads":
-                list = fm.getDownloadFiles(context);
-                break;
             case "Apps":
-                list = fm.getInstalledApps(context);
+                list = fm.findApkFilesUsingMediaStore(context);
                 break;
         }
         return list;

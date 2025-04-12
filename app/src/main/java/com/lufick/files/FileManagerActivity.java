@@ -335,7 +335,6 @@ public class FileManagerActivity extends AppCompatActivity {
                                 public void onLoadAlertDialog(String newName) {
                                     fm.deleteFileOrFolder(item.getFile());
                                     itemAdapter.remove(i);
-                                    fastAdapter.notifyAdapterItemRemoved(i);
 
                                 }
                             });

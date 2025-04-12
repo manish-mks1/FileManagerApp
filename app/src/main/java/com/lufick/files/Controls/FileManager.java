@@ -82,7 +82,6 @@ public class FileManager {
             );
 
             intent.setDataAndType(fileUri, mimeType);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
@@ -125,45 +124,47 @@ public class FileManager {
         }
         return fileList;
     }
-    public List<FileItem> getDownloadFiles(Context context) {
-        List<FileItem> fileList = new ArrayList<>();
-        Uri uri = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            uri = MediaStore.Downloads.getContentUri("external");
-        }
 
-        String[] projection = {
-                MediaStore.Downloads.DATA
+
+    //study
+    public List<FileItem> findApkFilesUsingMediaStore(Context context) {
+        List<FileItem> apkFiles = new ArrayList<>();
+        Uri collection = MediaStore.Files.getContentUri("external");
+
+        String[] projection = new String[] {
+                MediaStore.Files.FileColumns._ID,
+                MediaStore.Files.FileColumns.DATA,   // Full path to the file
+                MediaStore.Files.FileColumns.DISPLAY_NAME
         };
 
-        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        // Only select files that end with .apk
+        String selection = MediaStore.Files.FileColumns.MIME_TYPE + " = ?";
+        String[] selectionArgs = new String[] {"application/vnd.android.package-archive"};
+
+        Cursor cursor = context.getContentResolver().query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                null
+        );
+
         if (cursor != null) {
+            int dataIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA);
+
             while (cursor.moveToNext()) {
-                String filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Downloads.DATA));
+                String filePath = cursor.getString(dataIndex);
                 File file = new File(filePath);
                 if (file.exists()) {
-                    fileList.add(new FileItem(file));
+                    apkFiles.add(new FileItem(file));
                 }
             }
             cursor.close();
         }
-        return fileList;
-    }
-    public List<FileItem> getInstalledApps(Context context) {
-        List<FileItem> appList = new ArrayList<>();
-        PackageManager pm = context.getPackageManager();
-        List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
-        for (ApplicationInfo app : apps) {
-            if ((app.flags & ApplicationInfo.FLAG_SYSTEM) == 0) { // Exclude system apps
-                File apkFile = new File(app.sourceDir);
-                if (apkFile.exists()) {
-                    appList.add(new FileItem(apkFile));
-                }
-            }
-        }
-        return appList;
+        return apkFiles;
     }
+
 
     public void renameFolderOrFile(File file, String newName) {
         if(file.isDirectory()){
@@ -293,6 +294,8 @@ public class FileManager {
                 icon.setImageResource(R.drawable.pdf);
             } else if (mimeType.startsWith("text/")) {
                 icon.setImageResource(R.drawable.file_outlined);
+            }else if (mimeType.startsWith("application/vnd.android.package-archive")) {
+                icon.setImageResource(R.drawable.apk_icon);
             } else {
                 icon.setImageResource(R.drawable.file_outlined);
             }
