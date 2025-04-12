@@ -36,8 +36,8 @@ import com.lufick.files.Adapters.BreadcrumbItem;
 import com.lufick.files.Callbacks.LoadFilteredList;
 import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
-import com.lufick.files.AsyncTask.LoadFilesFolders;
-import com.lufick.files.AsyncTask.LoadFilesTaskByCategory;
+import com.lufick.files.BackgroundTask.LoadFilesFolders;
+import com.lufick.files.BackgroundTask.LoadFilesTaskByCategory;
 import com.lufick.files.BackgroundTask.BackgroundThread;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;
@@ -289,7 +289,6 @@ public class FileManagerActivity extends AppCompatActivity {
     }
 
     private void fastadapterListener() {
-
         fastAdapter.setOnLongClickListener((v, adapter, item, position) -> {
             if (item != null) {
                 applySelection(position);
@@ -297,7 +296,6 @@ public class FileManagerActivity extends AppCompatActivity {
             }
             return false;
         });
-
 
         fastAdapter.setOnClickListener((v, adapter, item, position) -> {
             if (!selectExtension.getSelections().isEmpty()) {
@@ -532,7 +530,7 @@ public class FileManagerActivity extends AppCompatActivity {
                 itemList = new ArrayList<>(list);
                 allFileList = new ArrayList<>(itemList);
             }
-        }).execute();
+        }).load();
     }
 
     private void loadFiles(File directory) {
@@ -541,7 +539,7 @@ public class FileManagerActivity extends AppCompatActivity {
             public void onLoadFilteredList(List<FileItem> list) {
                 itemList = new ArrayList<>(list);
             }
-        }).execute();
+        }).load();
         currentDirectory = directory;
         updateBreadcrumbs(directory);
     }
