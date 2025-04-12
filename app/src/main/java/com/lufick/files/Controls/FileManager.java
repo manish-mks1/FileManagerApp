@@ -318,6 +318,12 @@ public class FileManager {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setCancelable(false);
         builder.setTitle(title);
+        EditText input;
+        if(ActionType.RENAME.equals(actionType) || ActionType.ADD_FOLDER.equals(actionType)){
+            input = setTextInputToDialog(context,NEW_FOLDER,builder);
+        } else {
+            input = null;
+        }
         builder.setMessage(message);
         builder.setPositiveButton(positive, (dialog, which) -> {
             switch(actionType) {
@@ -325,15 +331,10 @@ public class FileManager {
                     listener.onLoadAlertDialog("");
                     break;
                 case RENAME :
-                    String newName = getTextInputFromDialog(context,file_name,builder);
+                case ADD_FOLDER:
+                    String newName = input.getText().toString();
                     if (!newName.isEmpty()) {
                         listener.onLoadAlertDialog(newName);
-                    }
-                    break;
-                case ADD_FOLDER:
-                    String newFolderName = getTextInputFromDialog(context,NEW_FOLDER,builder);
-                    if (!newFolderName.isEmpty()) {
-                        listener.onLoadAlertDialog(newFolderName);
                     }
                     break;
             }
@@ -347,7 +348,7 @@ public class FileManager {
         dialog.show();
     }
 
-    public String getTextInputFromDialog(Context context, String file_name,AlertDialog.Builder builder ){
+    public EditText setTextInputToDialog(Context context, String file_name,AlertDialog.Builder builder ){
         final EditText input = new EditText(context);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         input.setHint(file_name);
@@ -359,6 +360,6 @@ public class FileManager {
         input.setLayoutParams(layoutParams);
         builder.setView(input);
 
-        return input.getText().toString();
+        return input;
     }
 }

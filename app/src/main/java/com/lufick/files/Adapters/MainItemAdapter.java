@@ -15,8 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.lufick.files.Controls.FileManager;
-import com.lufick.files.Controls.ListManager;
-import com.lufick.files.Enumeration.CategoryType;
 import com.lufick.files.FileManagerActivity;
 import com.lufick.files.R;
 import com.mikepenz.fastadapter.FastAdapter;
@@ -96,11 +94,9 @@ public class MainItemAdapter<T extends AbstractItem> extends AbstractItem<MainIt
         public void bindView(@NonNull MainItemAdapter<T> item, @NonNull List<?> payloads) {
             String type = item.getCategoryType();
             if(type!=null){
-                ListManager lm = new ListManager();
                 categoryType.setText(type);
-                if(type.equals(CategoryType.Recent.name())){
-                    loadItem(item.getItems());
-                }
+                loadItem(item.getItems());
+
             }
 
         }

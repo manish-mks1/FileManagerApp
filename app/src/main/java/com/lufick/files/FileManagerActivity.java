@@ -2,6 +2,7 @@ package com.lufick.files;
 
 import static com.lufick.files.Enumeration.ActionType.ADD_FOLDER;
 import static com.lufick.files.Enumeration.ActionType.DELETE;
+import static com.lufick.files.Enumeration.ActionType.RENAME;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -142,7 +143,7 @@ public class FileManagerActivity extends AppCompatActivity {
             }
         });
         deleteBtn.setOnClickListener(v -> {
-            fm.showAlertDialog(FileManagerActivity.this, "Delete File(s)/Folder(s)", "Are you sure you want to delete this item?", "OK", "Cancel", ADD_FOLDER, null, new LoadAlertDialogBox() {
+            fm.showAlertDialog(FileManagerActivity.this, "Delete File(s)/Folder(s)", "Are you sure you want to delete this item?", "OK", "Cancel", DELETE, null, new LoadAlertDialogBox() {
                 @Override
                 public void onLoadAlertDialog(String newName) {
                     fm.deleteSelectedFiles(itemAdapter,selectExtension);
@@ -155,7 +156,7 @@ public class FileManagerActivity extends AppCompatActivity {
         renameBtn.setOnClickListener(v -> {
             if(!selectExtension.getSelections().isEmpty()){
                 FileItem item = itemAdapter.getAdapterItem(selectExtension.getSelections().iterator().next());
-                fm.showAlertDialog(FileManagerActivity.this, "Rename File/Folder", null, "Rename", "Cancel", ADD_FOLDER, FileManager.NEW_FOLDER, new LoadAlertDialogBox() {
+                fm.showAlertDialog(FileManagerActivity.this, "Rename File/Folder", null, "Rename", "Cancel", RENAME, FileManager.NEW_FOLDER, new LoadAlertDialogBox() {
                     @Override
                     public void onLoadAlertDialog(String newName) {
                         fm.renameFolderOrFile(item.getFile(),newName);
@@ -411,9 +412,12 @@ public class FileManagerActivity extends AppCompatActivity {
 
         internalStorage = Environment.getExternalStorageDirectory();
 
-        selectExtension = new SelectExtension<>(fastAdapter);
+        selectExtension = new SelectExtension<>( fastAdapter);
         selectExtension.setSelectable(true);
         selectExtension.setMultiSelect(true);
+        selectExtension.setSelectOnLongClick(true);
+        selectExtension.setAllowDeselection(true);
+
 
         fm = new FileManager();
         sm = new SortingManager();
@@ -436,22 +440,21 @@ public class FileManagerActivity extends AppCompatActivity {
         sortingTypeName.setText(sortingType);
     }
     private void applySelection(int position){
+        selectExtension.toggleSelection(position);
+        fastAdapter.notifyItemChanged(position);
         int count = selectExtension.getSelections().size();
         if(count == 0){
             selectionBarVisibility(false);
-        }else if(count == 1){
-            renameBtn.setVisibility(View.VISIBLE);
-        }else{
-            renameBtn.setVisibility(View.GONE);
+        }else {
+            selectionBarVisibility(true);
+            if (count == 1) {
+                renameBtn.setVisibility(View.VISIBLE);
+            } else {
+                renameBtn.setVisibility(View.GONE);
+            }
         }
-        selectionBarVisibility(true);
-
-//        selectExtension.toggleSelection(position);
-        fastAdapter.notifyItemChanged(position);
         selectedCount.setText(String.valueOf(count+" Selected"));
-
     }
-
 
     private void loadFilesByCategory(String category) {
         new LoadFilesTaskByCategory(category, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFilteredList() {

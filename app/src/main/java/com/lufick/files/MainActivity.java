@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private RecyclerView recyclerview;
-
+    FastAdapter<MainItemAdapter<? extends AbstractItem>> fastadapter;
     private ItemAdapter<MainItemAdapter<? extends AbstractItem>> itemAdapter;
 
 
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerview.setLayoutManager(new LinearLayoutManager(this));
         itemAdapter = new ItemAdapter<>();
 
-        FastAdapter<MainItemAdapter<? extends AbstractItem>> fastadapter = FastAdapter.with(itemAdapter);
+        fastadapter = FastAdapter.with(itemAdapter);
 
         recyclerview.setAdapter(fastadapter);
 
@@ -128,8 +128,9 @@ public class MainActivity extends AppCompatActivity {
         items.add(new QuickAccessItem("Documents", R.drawable.document_file_icon));
         items.add(new QuickAccessItem("Downloads", R.drawable.attachment));
         items.add(new QuickAccessItem("Apps", R.drawable.folder));
-
         itemAdapter.add(new MainItemAdapter<QuickAccessItem>(this,CategoryType.Category.name(), items));
+
+        fastadapter.notifyDataSetChanged();
     }
 
 
@@ -144,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
         itemAdapter.add(new MainItemAdapter<StorageDeviceItem>(this,CategoryType.Storage.name(), devices));
 
+        fastadapter.notifyDataSetChanged();
 
     }
 }
