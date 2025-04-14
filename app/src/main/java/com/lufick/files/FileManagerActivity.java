@@ -10,7 +10,6 @@ import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -19,17 +18,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import android.os.Environment;
-import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,8 +34,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lufick.files.Adapters.BreadcrumbItem;
 import com.lufick.files.Callbacks.LoadAlertDialogBox;
-import com.lufick.files.Callbacks.LoadFilteredList;
-import com.lufick.files.Callbacks.LoadSearchList;
+import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.BackgroundTask.LoadFilesFolders;
 import com.lufick.files.BackgroundTask.LoadFilesTaskByCategory;
@@ -59,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileManagerActivity extends AppCompatActivity {
-
     public static final String SORTING_PREF = "Files_sorting_pref";
     public static final String SORTING_TYPE = "sortingType";
     public static final String SORTING_ORDER = "sortingOrder";
@@ -198,7 +192,7 @@ public class FileManagerActivity extends AppCompatActivity {
             public void onClick(View view) {
                 sortingOrder = !sortingOrder;
                 editor.putBoolean("sortingOrder",sortingOrder);
-                sm.sortBy(itemAdapter,fastAdapter, itemList,sortingType,sortingOrder);
+                sort(itemList,sortingType,sortingOrder);
                 if(sortingOrder){
                     sortingAccDesc.setImageResource(R.drawable.arrow_up_short_ic);
                 }else{
@@ -225,7 +219,7 @@ public class FileManagerActivity extends AppCompatActivity {
                         }else{
                             return false;
                         }
-                        sm.sortBy(itemAdapter,fastAdapter, itemList,sortingType,sortingOrder);
+                        sort(itemList,sortingType,sortingOrder);
                         editor.putString("sortingType",sortingType);
                         sortingTypeName.setText(sortingType);
                         editor.apply();
@@ -233,6 +227,14 @@ public class FileManagerActivity extends AppCompatActivity {
                     }
                 });
                 menu.show();
+            }
+        });
+    }
+    private void sort(List<FileItem> itemList, String sortingType, boolean sortingOrder){
+        bt.sortBy(itemList,sortingType,sortingOrder, new LoadFileList() {
+            @Override
+            public void onLoad(List<FileItem> filteredList) {
+                fm.refreshList(filteredList,itemAdapter,fastAdapter);
             }
         });
     }
@@ -366,11 +368,9 @@ public class FileManagerActivity extends AppCompatActivity {
 
         breadcrumbRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-
         breadcrumbItemAdapter = new ItemAdapter<>();
         breadcrumbFastAdapter = FastAdapter.with(breadcrumbItemAdapter);
         breadcrumbRecyclerView.setAdapter(breadcrumbFastAdapter);
-
 
         addFolderBtn = findViewById(R.id.addFolderBtn);
 
@@ -401,7 +401,6 @@ public class FileManagerActivity extends AppCompatActivity {
         sortingTypeLayout = findViewById(R.id.sortingType);
         sortingAccDesc = findViewById(R.id.sortingAccDesc);
 
-
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         itemAdapter = new ItemAdapter<>();
@@ -416,7 +415,6 @@ public class FileManagerActivity extends AppCompatActivity {
         selectExtension.setMultiSelect(true);
         selectExtension.setSelectOnLongClick(true);
         selectExtension.setAllowDeselection(true);
-
 
         fm = new FileManager();
         sm = new SortingManager();
@@ -456,20 +454,27 @@ public class FileManagerActivity extends AppCompatActivity {
     }
 
     private void loadFilesByCategory(String category) {
-        new LoadFilesTaskByCategory(category, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFilteredList() {
+        new LoadFilesTaskByCategory(category, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFileList() {
             @Override
-            public void onLoadFilteredList(List<FileItem> list) {
+            public void onLoad(List<FileItem> list) {
                 itemList = new ArrayList<>(list);
+                sort(list,sortingType,sortingOrder);
                 allFileList = new ArrayList<>(itemList);
             }
         }).load();
     }
 
     private void loadFiles(File directory) {
-        new LoadFilesFolders(directory, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFilteredList() {
+        new LoadFilesFolders(directory, this, itemAdapter, fastAdapter, noFiles, progressBar, new LoadFileList() {
             @Override
-            public void onLoadFilteredList(List<FileItem> list) {
-                itemList = new ArrayList<>(list);
+            public void onLoad(List<FileItem> list) {
+                bt.sortBy(list, sortingType, sortingOrder, new LoadFileList() {
+                    @Override
+                    public void onLoad(List<FileItem> filteredList) {
+                        itemList = new ArrayList<>(list);
+                        sort(list,sortingType,sortingOrder);
+                    }
+                });
             }
         }).load();
         currentDirectory = directory;
@@ -486,54 +491,34 @@ public class FileManagerActivity extends AppCompatActivity {
         return true;
     }
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-
         MenuItem searchItem = menu.findItem(R.id.action_search);
-
         SearchView searchView = (SearchView) searchItem.getActionView();
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return search(query);
+                if(query.isEmpty()){
+                    fm.refreshList(itemList, itemAdapter, fastAdapter);
+                    return false;
+                }
+                return bt.search(FileManagerActivity.this, allFileList, itemAdapter, fastAdapter,query);
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                return search(newText);
+                if(newText.isEmpty()){
+                    fm.refreshList(itemList, itemAdapter, fastAdapter);
+                    return false;
+                }
+                return bt.search(FileManagerActivity.this, allFileList, itemAdapter, fastAdapter,newText);
             }
-
         });
 
         return true;
     }
-
-    private boolean search(String query) {
-        if(!query.isEmpty()) {
-            bt.searchFiles(allFileList, itemAdapter, fastAdapter, query, new LoadSearchList() {
-                @Override
-                public void onLoadSearchList(List<FileItem> list) {
-                    if(list.isEmpty()){
-                        Toast.makeText(FileManagerActivity.this,"No Item(s) Found",Toast.LENGTH_SHORT).show();
-                    }else {
-                        itemAdapter.clear();
-                        itemAdapter.set(list);
-                        fastAdapter.notifyDataSetChanged();
-                    }
-                }
-            });
-        }
-        else {
-            fm.refreshList(itemList, itemAdapter, fastAdapter);
-        }
-        return true;
-    }
-
 
     @Override
     public void onBackPressed() {
@@ -557,8 +542,6 @@ public class FileManagerActivity extends AppCompatActivity {
         }else{
             super.onBackPressed();
         }
-
-
     }
 
 }

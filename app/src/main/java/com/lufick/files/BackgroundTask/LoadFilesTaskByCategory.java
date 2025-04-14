@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.lufick.files.Callbacks.LoadFilteredList;
+import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Controls.SortingManager;
@@ -30,7 +30,7 @@ public class LoadFilesTaskByCategory {
     private Context context;
     private ItemAdapter<FileItem> itemAdapter;
     private FastAdapter<FileItem> fastAdapter;
-    private LoadFilteredList listener;
+    private LoadFileList listener;
     private TextView noFiles;
     private ConstraintLayout progressBar;
     private SharedPreferences sharedPreferences;
@@ -40,7 +40,7 @@ public class LoadFilesTaskByCategory {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    public LoadFilesTaskByCategory(String category, Context context, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, TextView noFiles, ConstraintLayout progressBar, LoadFilteredList listener) {
+    public LoadFilesTaskByCategory(String category, Context context, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, TextView noFiles, ConstraintLayout progressBar, LoadFileList listener) {
         this.category = category;
         this.context = context;
         this.itemAdapter = itemAdapter;
@@ -60,17 +60,14 @@ public class LoadFilesTaskByCategory {
             @Override
             public void run() {
                 List<FileItem> list = loadFiles();
-
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         progressBar.setVisibility(View.GONE);
-
                         itemAdapter.clear();
-                        new SortingManager().sortBy(itemAdapter, fastAdapter, list, sortingType, sortingOrder);
                         itemAdapter.add(list);
                         fastAdapter.notifyDataSetChanged();
-                        listener.onLoadFilteredList(list);
+                        listener.onLoad(list);
 
                         if (itemAdapter.getAdapterItemCount() == 0)
                             noFiles.setVisibility(View.VISIBLE);

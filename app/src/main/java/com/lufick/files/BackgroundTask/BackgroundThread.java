@@ -1,14 +1,22 @@
 package com.lufick.files.BackgroundTask;
 
+import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast;
 
+import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Callbacks.LoadRecentList;
 import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
 import com.lufick.files.Controls.FileManager;
+import com.lufick.files.Enumeration.SortingType;
+import com.lufick.files.FileManagerActivity;
+import com.lufick.files.Sorting.SortByDate;
+import com.lufick.files.Sorting.SortByName;
+import com.lufick.files.Sorting.SortBySize;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 
@@ -28,6 +36,23 @@ public class BackgroundThread {
         handler = new Handler(Looper.getMainLooper());
     }
 
+    public void sortBy(List<FileItem> itemList, String sortingType, boolean sortingOrder, LoadFileList listener){
+        executorService.execute(() -> {
+            if (sortingType.equals(SortingType.NAME.name()) ) {
+                itemList.sort(new SortByName(sortingOrder));
+            } else if (sortingType.equals(SortingType.DATE.name())) {
+                itemList.sort(new SortByDate(sortingOrder));
+            } else if (sortingType.equals(SortingType.SIZE.name())) {
+                itemList.sort(new SortBySize(sortingOrder));
+            }
+
+            handler.post(() -> {
+                listener.onLoad(itemList);
+            });
+        });
+
+    }
+
     public void loadRecentFiles(LoadRecentList listener) {
         FileManager fm = new FileManager();
         executorService.execute(() -> {
@@ -44,11 +69,9 @@ public class BackgroundThread {
         if (directory == null || !directory.exists()) return;
         File[] files = directory.listFiles();
         if (files == null) return;
-
         for (File file : files) {
             FileItem item = new FileItem(file);
             allFileList.add(item);
-
             if (file.isDirectory()) {
                 fetchFilesRecursive(allFileList,file);
             }
@@ -63,7 +86,24 @@ public class BackgroundThread {
         });
     }
 
-    public void searchFiles(List<FileItem> allFileList, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, String query, LoadSearchList listener) {
+    public boolean search(Context context, List<FileItem> allFileList, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, String query) {
+        searchFiles(allFileList, itemAdapter, fastAdapter, query, new LoadSearchList() {
+            @Override
+            public void onLoadSearchList(List<FileItem> list) {
+                if(list.isEmpty()){
+                    Toast.makeText(context,"No Item(s) Found",Toast.LENGTH_SHORT).show();
+                }else {
+                    itemAdapter.clear();
+                    itemAdapter.set(list);
+                    fastAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+
+        return true;
+    }
+
+    private void searchFiles(List<FileItem> allFileList, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, String query, LoadSearchList listener) {
         List<FileItem> temp = new ArrayList<>();
         executorService.execute(() -> {
             for (FileItem item : allFileList) {

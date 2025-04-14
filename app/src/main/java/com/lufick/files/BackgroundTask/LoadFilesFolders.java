@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.lufick.files.Adapters.FileItem;
-import com.lufick.files.Callbacks.LoadFilteredList;
+import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Controls.SortingManager;
 import com.lufick.files.FileManagerActivity;
 import com.mikepenz.fastadapter.FastAdapter;
@@ -30,7 +30,7 @@ public class LoadFilesFolders {
     private final FastAdapter<FileItem> fastAdapter;
     private final TextView noFiles;
     private final ConstraintLayout progressBar;
-    private final LoadFilteredList listener;
+    private final LoadFileList listener;
 
     private final SharedPreferences sharedPreferences;
     private final boolean sortingOrder;
@@ -45,7 +45,7 @@ public class LoadFilesFolders {
                             FastAdapter<FileItem> fastAdapter,
                             TextView noFiles,
                             ConstraintLayout progressBar,
-                            LoadFilteredList listener) {
+                            LoadFileList listener) {
         this.directory = directory;
         this.context = context;
         this.itemAdapter = itemAdapter;
@@ -69,10 +69,7 @@ public class LoadFilesFolders {
                 itemAdapter.clear();
                 itemAdapter.add(fileItems);
                 fastAdapter.notifyDataSetChanged();
-                listener.onLoadFilteredList(fileItems);
-
-                new SortingManager().sortBy(itemAdapter, fastAdapter, fileItems, sortingType, sortingOrder);
-
+                listener.onLoad(fileItems);
                 progressBar.setVisibility(View.GONE);
                 noFiles.setVisibility(itemAdapter.getAdapterItemCount() == 0 ? View.VISIBLE : View.GONE);
             });

@@ -10,16 +10,10 @@ import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SortingManager {
-    public void sortBy(ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter,List<FileItem> filteredList, String sortingType, boolean sortingOrder){
-        if (sortingType.equals(SortingType.NAME.name()) ) {
-            filteredList.sort(new SortByName(sortingOrder));
-        } else if (sortingType.equals(SortingType.DATE.name())) {
-            filteredList.sort(new SortByDate(sortingOrder));
-        } else if (sortingType.equals(SortingType.SIZE.name())) {
-            filteredList.sort(new SortBySize(sortingOrder));
-        }
-        new FileManager().refreshList(filteredList,itemAdapter,fastAdapter);
-    }
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+
 }

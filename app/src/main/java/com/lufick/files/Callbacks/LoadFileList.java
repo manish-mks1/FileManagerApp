@@ -4,6 +4,6 @@ import com.lufick.files.Adapters.FileItem;
 
 import java.util.List;
 
-public interface LoadFilteredList {
-    void onLoadFilteredList(List<FileItem> filteredList);
+public interface LoadFileList {
+    void onLoad(List<FileItem> filteredList);
 }
