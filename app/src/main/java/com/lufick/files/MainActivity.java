@@ -122,11 +122,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadQuickAccessItems() {
         List<QuickAccessItem> items = new ArrayList<>();
-        items.add(new QuickAccessItem("Images", R.drawable.photoes));
-        items.add(new QuickAccessItem("Videos", R.drawable.videos));
-        items.add(new QuickAccessItem("Audio", R.drawable.music_file_icon));
+        items.add(new QuickAccessItem("Images", R.drawable.image_ic));
+        items.add(new QuickAccessItem("Videos", R.drawable.video_ic));
+        items.add(new QuickAccessItem("Audio", R.drawable.ic_audio));
         items.add(new QuickAccessItem("Documents", R.drawable.document_file_icon));
-        items.add(new QuickAccessItem("Downloads", R.drawable.attachment));
+        items.add(new QuickAccessItem("Downloads", R.drawable.download_ic));
         items.add(new QuickAccessItem("Apps", R.drawable.folder));
         itemAdapter.add(new MainItemAdapter<QuickAccessItem>(this,CategoryType.Category.name(), items));
 

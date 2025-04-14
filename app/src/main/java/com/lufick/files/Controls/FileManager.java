@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -68,9 +70,6 @@ public class FileManager {
         return String.format("%.1f %s", size / Math.pow(1024, exp), pre);
     }
 
-
-
-
     public void openFile(Context context,File file) {
         try {
             String mimeType = getMimeType(file);
@@ -125,7 +124,6 @@ public class FileManager {
         return fileList;
     }
 
-
     //study
     public List<FileItem> findApkFilesUsingMediaStore(Context context) {
         List<FileItem> apkFiles = new ArrayList<>();
@@ -137,7 +135,6 @@ public class FileManager {
                 MediaStore.Files.FileColumns.DISPLAY_NAME
         };
 
-        // Only select files that end with .apk
         String selection = MediaStore.Files.FileColumns.MIME_TYPE + " = ?";
         String[] selectionArgs = new String[] {"application/vnd.android.package-archive"};
 
@@ -151,7 +148,6 @@ public class FileManager {
 
         if (cursor != null) {
             int dataIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA);
-
             while (cursor.moveToNext()) {
                 String filePath = cursor.getString(dataIndex);
                 File file = new File(filePath);
@@ -161,7 +157,6 @@ public class FileManager {
             }
             cursor.close();
         }
-
         return apkFiles;
     }
 
@@ -182,14 +177,12 @@ public class FileManager {
     public void deleteSelectedFiles(ItemAdapter<FileItem> itemAdapter, SelectExtension<FileItem> selectExtension) {
         Set<Integer> selectedPositions = selectExtension.getSelections();
         List<FileItem> selectedItems = new ArrayList<>();
-
         for (int pos : selectedPositions) {
             selectedItems.add(itemAdapter.getAdapterItem(pos));
             File file = new File(itemAdapter.getAdapterItem(pos).getFile().getAbsolutePath());
             file.delete();
             itemAdapter.remove(pos);
         }
-
         selectExtension.deselect();
     }
     public void copyFileOrFolder(String sourcePath, String destinationPath){
@@ -231,12 +224,10 @@ public class FileManager {
     }
     public void moveSelectedFiles(ItemAdapter<FileItem> itemAdapter, SelectExtension<FileItem> selectExtension, String destinationPath) {
         Set<Integer> selectedPositions = selectExtension.getSelections();
-
         for (int pos : selectedPositions) {
             FileItem fileItem = itemAdapter.getAdapterItem(pos);
             File sourceFile = new File(fileItem.getFile().getAbsolutePath());
             File destFile = new File(destinationPath, sourceFile.getName());
-
             if (sourceFile.renameTo(destFile)) {
                 itemAdapter.remove(pos);
             }
@@ -249,14 +240,10 @@ public class FileManager {
 
     public List<RecentFileItem> getRecentFiles(File directory) {
         List<RecentFileItem> recentFiles = new ArrayList<>();
-
         if (directory == null || !directory.exists()) return recentFiles;
-
         File[] files = directory.listFiles();
         if (files == null) return recentFiles;
-
         long twentyFourHoursAgo = System.currentTimeMillis() - (24 * 60 * 60 * 1000); // Last 24 hours
-
         for (File file : files) {
             if (file.isDirectory()) {
                 recentFiles.addAll(getRecentFiles(file)); // Recursive call for subdirectories
@@ -278,7 +265,6 @@ public class FileManager {
         if (mimeType == null) {
             mimeType = URLConnection.guessContentTypeFromName(file.getName());
         }
-
         if (mimeType != null) {
             if (mimeType.startsWith("image/")) {
                 Glide.with(itemView.getContext())
@@ -287,13 +273,18 @@ public class FileManager {
                         .error(R.drawable.baseline_broken_image_24)
                         .into(icon);
             } else if (mimeType.startsWith("video/")) {
-                icon.setImageResource(R.drawable.videos);
+                Bitmap thumbnail = getVideoThumbnail(file.getAbsolutePath());
+                if (thumbnail != null) {
+                    icon.setImageBitmap(thumbnail);
+                } else {
+                    icon.setImageResource(R.drawable.videos);
+                }
             } else if (mimeType.startsWith("audio/")) {
                 icon.setImageResource(R.drawable.music_file_icon);
             } else if (mimeType.equals("application/pdf")) {
                 icon.setImageResource(R.drawable.pdf);
             } else if (mimeType.startsWith("text/")) {
-                icon.setImageResource(R.drawable.file_outlined);
+                icon.setImageResource(R.drawable.file_lines_text);
             }else if (mimeType.startsWith("application/vnd.android.package-archive")) {
                 icon.setImageResource(R.drawable.apk_icon);
             } else {
@@ -304,6 +295,12 @@ public class FileManager {
         }
     }
 
+    public Bitmap getVideoThumbnail(String videoPath) {
+        return ThumbnailUtils.createVideoThumbnail(
+                videoPath,
+                MediaStore.Video.Thumbnails.MINI_KIND
+        );
+    }
 
     public void addFolder(View view,File directory,String newFolderName){
         File folder = new File(directory,newFolderName);
@@ -315,7 +312,6 @@ public class FileManager {
                 Snackbar.make(view,"Folder Already Exists.", Snackbar.LENGTH_SHORT).show();
         }
     }
-
 
     public void showAlertDialog(Context context, String title, String message, String positive, String negative, ActionType actionType, String file_name, LoadAlertDialogBox listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -341,12 +337,9 @@ public class FileManager {
                     }
                     break;
             }
-
         });
 
         builder.setNegativeButton(negative, (dialog, which) -> dialog.dismiss());
-
-
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -362,7 +355,6 @@ public class FileManager {
         layoutParams.setMargins(50, 30, 50, 10);
         input.setLayoutParams(layoutParams);
         builder.setView(input);
-
         return input;
     }
 }

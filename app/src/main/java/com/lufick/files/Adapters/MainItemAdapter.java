@@ -106,7 +106,7 @@ public class MainItemAdapter<T extends AbstractItem> extends AbstractItem<MainIt
             if (firstItem instanceof RecentFileItem) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
             } else if (firstItem instanceof QuickAccessItem) {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+                recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
             } else if (firstItem instanceof StorageDeviceItem) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             }

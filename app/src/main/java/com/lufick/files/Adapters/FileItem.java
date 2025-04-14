@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.bumptech.glide.Glide;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.R;
 
@@ -111,7 +110,7 @@ public class FileItem extends AbstractItem< FileItem.ViewHolder>{
 
         public void bindView(FileItem item, List<?> payloads) {
             if (item.isSelected()) {
-                file_item_layout.setBackgroundResource(R.drawable.background_rounded); // Light Blue when selected
+                file_item_layout.setBackgroundResource(R.drawable.ripple_background_rounded); // Light Blue when selected
             } else {
                 file_item_layout.setBackgroundColor(Color.TRANSPARENT);
             }

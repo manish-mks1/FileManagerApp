@@ -23,7 +23,7 @@
             android:layout_height="60dp"
             android:scaleType="centerCrop"
             android:layout_gravity="center"
-            android:src="@drawable/photoes" />
+            android:src="@drawable/image_ic" />
     </androidx.cardview.widget.CardView>
 
 

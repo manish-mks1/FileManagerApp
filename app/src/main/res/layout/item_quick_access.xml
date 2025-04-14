@@ -1,35 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="60dp"
     android:id="@+id/quick_access_item"
-    android:orientation="vertical"
-    android:gravity="center"
+    android:orientation="horizontal"
+    android:gravity="start"
+    android:background="@drawable/ripple_background_rounded"
     android:layout_margin="3dp"
     android:elevation="10dp"
     android:clipToPadding="true"
     android:padding="8dp">
 
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="60dp"
-        app:cardCornerRadius="10dp"
-        android:layout_height="60dp">
-        <ImageView
-            android:id="@+id/quick_access_icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center"
-            android:src="@drawable/photoes" />
-    </androidx.cardview.widget.CardView>
-
-
-    <TextView
-        android:id="@+id/quick_access_title"
+    <ImageView
+        android:id="@+id/quick_access_icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="10dp"
+        android:src="@drawable/image_ic" />
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Images"
-        android:textSize="14sp"
-        android:layout_marginTop="4dp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginStart="20dp"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/quick_access_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/images"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_marginTop="4dp" />
+        <TextView
+            android:id="@+id/storage_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.0 GB"
+            android:textSize="11sp"
+            android:layout_gravity="start"
+            android:textColor="@color/white"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+
 </LinearLayout>
