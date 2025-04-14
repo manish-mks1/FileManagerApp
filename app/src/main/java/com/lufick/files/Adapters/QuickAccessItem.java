@@ -16,10 +16,20 @@ public class QuickAccessItem extends AbstractItem< QuickAccessItem.ViewHolder> {
 
     private String title;
     private int iconRes;
+    private String storageInfo;
 
-    public QuickAccessItem(String title, int iconRes) {
+    public QuickAccessItem(String title, String storageInfo, int iconRes) {
         this.title = title;
         this.iconRes = iconRes;
+        this.storageInfo = storageInfo;
+    }
+
+    public String getStorageInfo() {
+        return storageInfo;
+    }
+
+    public void setStorageInfo(String storageInfo) {
+        this.storageInfo = storageInfo;
     }
 
     public String getTitle() {
@@ -58,17 +68,21 @@ public class QuickAccessItem extends AbstractItem< QuickAccessItem.ViewHolder> {
 
         ImageView icon;
         TextView title;
+        TextView storage_info;
 
         public ViewHolder(View itemView) {
             super(itemView);
             icon = itemView.findViewById(R.id.quick_access_icon);
             title = itemView.findViewById(R.id.quick_access_title);
+            storage_info = itemView.findViewById(R.id.storage_info);
         }
 
         @Override
         public void bindView(QuickAccessItem item, List<?> payloads) {
             icon.setImageResource(item.iconRes);
             title.setText(item.title);
+            storage_info.setText(item.getStorageInfo());
+
         }
 
         @Override

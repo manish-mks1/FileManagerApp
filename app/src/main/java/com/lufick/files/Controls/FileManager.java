@@ -2,8 +2,6 @@ package com.lufick.files.Controls;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.ThumbnailUtils;
@@ -29,6 +27,7 @@ import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
 import com.lufick.files.Callbacks.LoadAlertDialogBox;
 import com.lufick.files.Enumeration.ActionType;
+import com.lufick.files.Enumeration.FileCategory;
 import com.lufick.files.R;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
@@ -40,7 +39,9 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class FileManager {

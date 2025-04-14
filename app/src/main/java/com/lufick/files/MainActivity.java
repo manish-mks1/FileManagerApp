@@ -28,6 +28,7 @@ import com.lufick.files.Adapters.StorageDeviceItem;
 import com.lufick.files.BackgroundTask.BackgroundThread;
 import com.lufick.files.Callbacks.LoadRecentList;
 import com.lufick.files.Enumeration.CategoryType;
+import com.lufick.files.Enumeration.FileCategory;
 import com.lufick.files.Storage.StorageUtils;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
@@ -35,6 +36,7 @@ import com.mikepenz.fastadapter.items.AbstractItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -121,13 +123,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void loadQuickAccessItems() {
+        StorageUtils storageUtils = new StorageUtils();
+        Map<FileCategory, Long> storageUsage = storageUtils.getUsedStorageByCategories(MainActivity.this);
+
         List<QuickAccessItem> items = new ArrayList<>();
-        items.add(new QuickAccessItem("Images", R.drawable.image_ic));
-        items.add(new QuickAccessItem("Videos", R.drawable.video_ic));
-        items.add(new QuickAccessItem("Audio", R.drawable.ic_audio));
-        items.add(new QuickAccessItem("Documents", R.drawable.document_file_icon));
-        items.add(new QuickAccessItem("Downloads", R.drawable.download_ic));
-        items.add(new QuickAccessItem("Apps", R.drawable.folder));
+        items.add(new QuickAccessItem("Images",StorageUtils.formatSize(storageUsage.get(FileCategory.IMAGES)), R.drawable.image_ic));
+        items.add(new QuickAccessItem("Videos", StorageUtils.formatSize(storageUsage.get(FileCategory.VIDEOS)), R.drawable.video_ic));
+        items.add(new QuickAccessItem("Audio", StorageUtils.formatSize(storageUsage.get(FileCategory.AUDIO)), R.drawable.ic_audio));
+        items.add(new QuickAccessItem("Documents", StorageUtils.formatSize(storageUsage.get(FileCategory.DOCUMENTS)), R.drawable.document_file_icon));
+        items.add(new QuickAccessItem("Downloads", StorageUtils.formatSize(storageUsage.get(FileCategory.DOWNLOADS)), R.drawable.download_ic));
+        items.add(new QuickAccessItem("Apps", StorageUtils.formatSize(storageUsage.get(FileCategory.APK)), R.drawable.folder));
         itemAdapter.add(new MainItemAdapter<QuickAccessItem>(this,CategoryType.Category.name(), items));
 
         fastadapter.notifyDataSetChanged();
