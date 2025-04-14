@@ -27,7 +27,6 @@ import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
 import com.lufick.files.Callbacks.LoadAlertDialogBox;
 import com.lufick.files.Enumeration.ActionType;
-import com.lufick.files.Enumeration.FileCategory;
 import com.lufick.files.R;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
@@ -39,13 +38,10 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class FileManager {
-
     public static final String NEW_FOLDER = "New Folder";
     public static File getExternalSDCardPath(Context context) {
         File[] externalDirs = context.getExternalFilesDirs(null);

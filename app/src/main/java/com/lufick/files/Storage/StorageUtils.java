@@ -10,6 +10,8 @@ import android.os.StatFs;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
+import android.text.format.DateUtils;
+import android.text.format.Formatter;
 
 import com.lufick.files.Enumeration.FileCategory;
 
@@ -23,71 +25,42 @@ public class StorageUtils {
 
     // Fetch internal storage info
     public static String getInternalStorageInfo(Context context) {
-        File internalStorage = Environment.getDataDirectory();
-        return getStorageDetails(context);
+        String internalStorage = Environment.getDataDirectory().getAbsolutePath();
+        return getStorageDetails(context, internalStorage);
     }
 
     // Fetch SD card storage info (if exists)
     public static String getSDCardStorageInfo(Context context) {
         File[] externalDirs = context.getExternalFilesDirs(null);
 
-        // Loop through available external directories
         for (File file : externalDirs) {
             if (file != null && Environment.isExternalStorageRemovable(file)) {
-                return getStorageDetails(context);
+                return getStorageDetails(context,file.getAbsolutePath());
             }
         }
-
         return "Not Inserted";
     }
 
-    // Core method to fetch storage details
-    private static String getStorageDetails(Context context) {
-        StorageStatsManager storageStatsManager = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            storageStatsManager = (StorageStatsManager) context.getSystemService(Context.STORAGE_STATS_SERVICE);
-        }
-        StorageManager storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+    public static String getStorageDetails(Context context, String file_path) {
+        StatFs statFs = new StatFs(file_path);
+        long totalBytes = statFs.getTotalBytes();
+        long freeBytes = statFs.getAvailableBytes();
+        long usedBytes = totalBytes - freeBytes;
 
-        long totalBytes = 0L;
-        long freeBytes = 0L;
-        long usedBytes = 0L;
-
-        try {
-            if (storageManager != null) {
-                List<StorageVolume> storageVolumes = storageManager.getStorageVolumes();
-                for (StorageVolume volume : storageVolumes) {
-                    String uuidStr = volume.getUuid();
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        UUID uuid = uuidStr == null ? StorageManager.UUID_DEFAULT : UUID.fromString(uuidStr);
-                        totalBytes += storageStatsManager.getTotalBytes(uuid);
-                        freeBytes += storageStatsManager.getFreeBytes(uuid);
-                    }
-                }
-                usedBytes = totalBytes - freeBytes;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return "Used: " + formatSize(usedBytes) + " / Total: " + formatSize(totalBytes);
+        return "Used: " + Formatter.formatFileSize(context, usedBytes) + " / Total: " + Formatter.formatFileSize(context, totalBytes);
     }
 
-    public static String formatSize(long size) {
-        final String[] units = {"B", "KB", "MB", "GB", "TB"};
-        int unitIndex = 0;
-        double fileSize = size;
+    public static String getTimeAgoFormat(File file) {
+        long lastModified = file.lastModified();
+        return (String) DateUtils.getRelativeTimeSpanString(
+                lastModified,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS
+        );
+    }
 
-        while (fileSize >= 1024 && unitIndex < units.length - 1) {
-            fileSize /= 1024.0;
-            unitIndex++;
-        }
-
-        if (unitIndex >= 2) { // MB or above
-            return String.format("%.0f %s", fileSize, units[unitIndex]);
-        } else {
-            return String.format("%.2f %s", fileSize, units[unitIndex]);
-        }
+    public static String formatSize(Context context, long sizeInBytes) {
+        return Formatter.formatFileSize(context, sizeInBytes);
     }
 
     public Map<FileCategory, Long> getUsedStorageByCategories(Context context) {

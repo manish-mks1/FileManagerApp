@@ -127,12 +127,12 @@ public class MainActivity extends AppCompatActivity {
         Map<FileCategory, Long> storageUsage = storageUtils.getUsedStorageByCategories(MainActivity.this);
 
         List<QuickAccessItem> items = new ArrayList<>();
-        items.add(new QuickAccessItem("Images",StorageUtils.formatSize(storageUsage.get(FileCategory.IMAGES)), R.drawable.image_ic));
-        items.add(new QuickAccessItem("Videos", StorageUtils.formatSize(storageUsage.get(FileCategory.VIDEOS)), R.drawable.video_ic));
-        items.add(new QuickAccessItem("Audio", StorageUtils.formatSize(storageUsage.get(FileCategory.AUDIO)), R.drawable.ic_audio));
-        items.add(new QuickAccessItem("Documents", StorageUtils.formatSize(storageUsage.get(FileCategory.DOCUMENTS)), R.drawable.document_file_icon));
-        items.add(new QuickAccessItem("Downloads", StorageUtils.formatSize(storageUsage.get(FileCategory.DOWNLOADS)), R.drawable.download_ic));
-        items.add(new QuickAccessItem("Apps", StorageUtils.formatSize(storageUsage.get(FileCategory.APK)), R.drawable.folder));
+        items.add(new QuickAccessItem("Images",StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.IMAGES)), R.drawable.image_ic));
+        items.add(new QuickAccessItem("Videos", StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.VIDEOS)), R.drawable.video_ic));
+        items.add(new QuickAccessItem("Audio", StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.AUDIO)), R.drawable.ic_audio));
+        items.add(new QuickAccessItem("Documents", StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.DOCUMENTS)), R.drawable.document_file_icon));
+        items.add(new QuickAccessItem("Downloads", StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.DOWNLOADS)), R.drawable.download_ic));
+        items.add(new QuickAccessItem("Apps", StorageUtils.formatSize(MainActivity.this,storageUsage.get(FileCategory.APK)), R.drawable.folder));
         itemAdapter.add(new MainItemAdapter<QuickAccessItem>(this,CategoryType.Category.name(), items));
 
         fastadapter.notifyDataSetChanged();
