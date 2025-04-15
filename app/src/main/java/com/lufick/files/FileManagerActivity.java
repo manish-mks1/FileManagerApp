@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,7 +41,6 @@ import com.lufick.files.BackgroundTask.LoadFilesFolders;
 import com.lufick.files.BackgroundTask.LoadFilesTaskByCategory;
 import com.lufick.files.BackgroundTask.BackgroundThread;
 import com.lufick.files.Controls.FileManager;
-import com.lufick.files.Controls.SortingManager;
 import com.lufick.files.Enumeration.ActionType;
 import com.lufick.files.Enumeration.SortingType;
 import com.lufick.files.Fragments.FolderPickerDialog;
@@ -57,6 +57,7 @@ public class FileManagerActivity extends AppCompatActivity {
     public static final String SORTING_PREF = "Files_sorting_pref";
     public static final String SORTING_TYPE = "sortingType";
     public static final String SORTING_ORDER = "sortingOrder";
+    public static final String FOLDER_PICKER_DIALOG = "FolderPickerDialog";
     File currentDirectory;
     File internalStorage;
     SelectExtension<FileItem> selectExtension;
@@ -74,13 +75,11 @@ public class FileManagerActivity extends AppCompatActivity {
 
     FileManager fm;
     BackgroundThread bt;
-    SortingManager sm;
 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     boolean sortingOrder;
     String sortingType;
-    int count;
 
     FloatingActionButton addFolderBtn;
     List<FileItem> allFileList;
@@ -130,7 +129,6 @@ public class FileManagerActivity extends AppCompatActivity {
                 }
                 return null;
             }
-
             @Override
             public void onClick(@NonNull View view, int i, @NonNull FastAdapter<BreadcrumbItem> fastAdapter, @NonNull BreadcrumbItem item) {
                 loadFiles(item.getDirectory());
@@ -168,7 +166,7 @@ public class FileManagerActivity extends AppCompatActivity {
                 if(!selectExtension.getSelections().isEmpty()){
                     new FolderPickerDialog(selectedFolderPath -> {
                         fm.copySelectedFiles(itemAdapter,selectExtension,selectedFolderPath);
-                    }).show(getSupportFragmentManager(), "FolderPickerDialog");
+                    }).show(getSupportFragmentManager(), FOLDER_PICKER_DIALOG);
 
                     selectionBarVisibility(false);
                 }
@@ -180,7 +178,7 @@ public class FileManagerActivity extends AppCompatActivity {
                 if(!selectExtension.getSelections().isEmpty()){
                     new FolderPickerDialog(selectedFolderPath -> {
                         fm.moveSelectedFiles(itemAdapter,selectExtension,selectedFolderPath);
-                    }).show(getSupportFragmentManager(), "FolderPickerDialog");
+                    }).show(getSupportFragmentManager(), FOLDER_PICKER_DIALOG);
 
                     selectionBarVisibility(false);
                 }
@@ -191,7 +189,7 @@ public class FileManagerActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 sortingOrder = !sortingOrder;
-                editor.putBoolean("sortingOrder",sortingOrder);
+                editor.putBoolean(SORTING_ORDER,sortingOrder);
                 sort(itemList,sortingType,sortingOrder);
                 if(sortingOrder){
                     sortingAccDesc.setImageResource(R.drawable.arrow_up_short_ic);
@@ -220,7 +218,7 @@ public class FileManagerActivity extends AppCompatActivity {
                             return false;
                         }
                         sort(itemList,sortingType,sortingOrder);
-                        editor.putString("sortingType",sortingType);
+                        editor.putString(SORTING_TYPE,sortingType);
                         sortingTypeName.setText(sortingType);
                         editor.apply();
                         return true;
@@ -417,25 +415,22 @@ public class FileManagerActivity extends AppCompatActivity {
         selectExtension.setAllowDeselection(true);
 
         fm = new FileManager();
-        sm = new SortingManager();
         bt = new BackgroundThread();
 
         Intent in = getIntent();
         String st = in.getStringExtra("Storage");
         if(st!=null)
             storage = new File(st);
-
         fileCategory = in.getStringExtra("FILE_CATEGORY");
-
         if (fileCategory != null) {
             loadFilesByCategory(fileCategory);
         }else {
             loadFiles(storage);
             bt.loadAllFiles(allFileList,currentDirectory);
         }
-
         sortingTypeName.setText(sortingType);
     }
+
     private void applySelection(int position){
         selectExtension.toggleSelection(position);
         fastAdapter.notifyItemChanged(position);
@@ -500,24 +495,36 @@ public class FileManagerActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if(query.isEmpty()){
-                    fm.refreshList(itemList, itemAdapter, fastAdapter);
-                    return false;
-                }
-                return bt.search(FileManagerActivity.this, allFileList, itemAdapter, fastAdapter,query);
+                search(query);
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if(newText.isEmpty()){
-                    fm.refreshList(itemList, itemAdapter, fastAdapter);
-                    return false;
-                }
-                return bt.search(FileManagerActivity.this, allFileList, itemAdapter, fastAdapter,newText);
+                search(newText);
+                return true;
             }
         });
 
         return true;
+    }
+    private void search(String query){
+        if(query.isEmpty()){
+            fm.refreshList(itemList, itemAdapter, fastAdapter);
+            return;
+        }
+        bt.searchFiles(allFileList, query, new LoadFileList() {
+            @Override
+            public void onLoad(List<FileItem> list) {
+                if(list.isEmpty()){
+                    Toast.makeText(FileManagerActivity.this,"No Item(s) Found",Toast.LENGTH_SHORT).show();
+                }else {
+                    itemAdapter.clear();
+                    itemAdapter.set(list);
+                    fastAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     @Override

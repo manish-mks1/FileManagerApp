@@ -12,7 +12,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Controls.FileManager;
-import com.lufick.files.Controls.SortingManager;
 import com.lufick.files.FileManagerActivity;
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;

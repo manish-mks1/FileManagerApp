@@ -8,12 +8,10 @@ import android.widget.Toast;
 
 import com.lufick.files.Callbacks.LoadFileList;
 import com.lufick.files.Callbacks.LoadRecentList;
-import com.lufick.files.Callbacks.LoadSearchList;
 import com.lufick.files.Adapters.FileItem;
 import com.lufick.files.Adapters.RecentFileItem;
 import com.lufick.files.Controls.FileManager;
 import com.lufick.files.Enumeration.SortingType;
-import com.lufick.files.FileManagerActivity;
 import com.lufick.files.Sorting.SortByDate;
 import com.lufick.files.Sorting.SortByName;
 import com.lufick.files.Sorting.SortBySize;
@@ -45,7 +43,6 @@ public class BackgroundThread {
             } else if (sortingType.equals(SortingType.SIZE.name())) {
                 itemList.sort(new SortBySize(sortingOrder));
             }
-
             handler.post(() -> {
                 listener.onLoad(itemList);
             });
@@ -87,23 +84,12 @@ public class BackgroundThread {
     }
 
     public boolean search(Context context, List<FileItem> allFileList, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, String query) {
-        searchFiles(allFileList, itemAdapter, fastAdapter, query, new LoadSearchList() {
-            @Override
-            public void onLoadSearchList(List<FileItem> list) {
-                if(list.isEmpty()){
-                    Toast.makeText(context,"No Item(s) Found",Toast.LENGTH_SHORT).show();
-                }else {
-                    itemAdapter.clear();
-                    itemAdapter.set(list);
-                    fastAdapter.notifyDataSetChanged();
-                }
-            }
-        });
+
 
         return true;
     }
 
-    private void searchFiles(List<FileItem> allFileList, ItemAdapter<FileItem> itemAdapter, FastAdapter<FileItem> fastAdapter, String query, LoadSearchList listener) {
+    public void searchFiles(List<FileItem> allFileList, String query, LoadFileList listener) {
         List<FileItem> temp = new ArrayList<>();
         executorService.execute(() -> {
             for (FileItem item : allFileList) {
@@ -113,7 +99,7 @@ public class BackgroundThread {
                 }
             }
             handler.post(() -> {
-                listener.onLoadSearchList(temp);
+                listener.onLoad(temp);
             });
 
 
